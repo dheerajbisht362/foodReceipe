@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<style>
+    #suggest{
+        width: 30%;
+        height: 200px;
+        overflow: auto;
+        position: relative;
+        z-index: 2;
+    }
+
+</style>
+<body>
+    <div id="nav"></div>
+    <div id="searchDiv">
+        <h3>Search for dishes</h3>
+        <input type="text" id="find"/>
+        <div id="suggest"></div>
+    </div>
+    <div id="show"></div>
+
+</body>
+</html>
+<script type="module">
+    document.getElementById('nav').innerHTML = navbar()
+    import navbar from './navbar.js'
+
+
+    var val = document.getElementById("find")
+    val.addEventListener("input", debounce(throttleFunction,800))
+
+    import { getData, displayData } from "./scripts.js"
+    
+
+    function debounce(callback, delay) {
+            let timeout;
+            return function () {
+                clearTimeout(timeout);
+                timeout = setTimeout(callback, delay);
+            }
+        }
+
+    function throttleFunction(){
+        var val = document.getElementById('find').value;
+        let url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${val}`
+        let response = getData(url)
+        response.then((data) => {
+            let parent = document.getElementById('suggest')
+            displaySuggestion(data, parent)
+        })
+    }
+    function displaySuggestion(data, parent) {
+        parent.innerHTML = null;
+        let meals = data.meals;
+        if(meals == null ) return 
+        meals.forEach(({ strMeal})=>{
+           var p = document.createElement("p");
+           p.innerText = strMeal
+        //    p.addEventListener("click",fetchResults)
+           p.onclick = function(){
+               let url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${strMeal}`
+               let response = getData(url)
+               response.then((data)=>{
+                let parent = document.getElementById("show")
+                document.getElementById("searchDiv").style.display = "none"
+                displayData(data, parent)
+               })
+           }
+           parent.appendChild(p)
+        })
+    }
+
+</script>
